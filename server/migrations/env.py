@@ -6,6 +6,7 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from app.database import _normalize_url
 from app.models import Base
 
 config = context.config
@@ -16,9 +17,10 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Override URL from environment if available, ensuring asyncpg driver
+_use_ssl = False
 database_url = os.environ.get("DATABASE_URL")
 if database_url:
-    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    database_url, _use_ssl = _normalize_url(database_url)
     config.set_main_option("sqlalchemy.url", database_url)
 
 
@@ -41,10 +43,12 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
+    connect_args = {"ssl": True} if _use_ssl else {}
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
