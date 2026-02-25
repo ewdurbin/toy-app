@@ -22,54 +22,6 @@
           }
         },
         {
-          "kind": "SecretGroup",
-          "spec": {
-            "type": "config",
-            "secretType": "environment-arguments",
-            "priority": 10,
-            "secrets": {
-              "variables": {
-                "VITE_API_URL": "https://${refs.server.ports.0.dns}"
-              },
-              "files": {},
-              "dockerSecretMounts": {}
-            },
-            "addonDependencies": [],
-            "name": "API URL",
-            "restrictions": {
-              "restricted": false,
-              "nfObjects": [],
-              "tags": []
-            },
-            "projectId": "${refs.project.id}"
-          },
-          "ref": "cors"
-        },
-        {
-          "kind": "SecretGroup",
-          "spec": {
-            "type": "secret",
-            "secretType": "environment-arguments",
-            "priority": 10,
-            "secrets": {
-              "variables": {
-                "CORS_ORIGINS": "https://${refs.app.ports.0.dns}"
-              },
-              "files": {},
-              "dockerSecretMounts": {}
-            },
-            "addonDependencies": [],
-            "name": "CORS ORIGIN",
-            "restrictions": {
-              "restricted": false,
-              "nfObjects": [],
-              "tags": []
-            },
-            "projectId": "${refs.project.id}"
-          },
-          "ref": "cors-origin"
-        },
-        {
           "kind": "Workflow",
           "spec": {
             "type": "sequential",
@@ -228,6 +180,30 @@
           }
         },
         {
+          "kind": "SecretGroup",
+          "spec": {
+            "type": "config",
+            "secretType": "environment-arguments",
+            "priority": 10,
+            "secrets": {
+              "variables": {
+                "VITE_API_URL": "https://${refs.server.ports.0.dns}"
+              },
+              "files": {},
+              "dockerSecretMounts": {}
+            },
+            "addonDependencies": [],
+            "name": "API URL",
+            "restrictions": {
+              "restricted": false,
+              "nfObjects": [],
+              "tags": []
+            },
+            "projectId": "${refs.project.id}"
+          },
+          "ref": "cors"
+        },
+        {
           "kind": "CombinedService",
           "spec": {
             "deployment": {
@@ -306,6 +282,30 @@
             "projectId": "${refs.project.id}"
           },
           "ref": "app"
+        },
+        {
+          "kind": "SecretGroup",
+          "spec": {
+            "type": "secret",
+            "secretType": "environment-arguments",
+            "priority": 10,
+            "secrets": {
+              "variables": {
+                "CORS_ORIGINS": "https://${refs.app.ports.0.dns}"
+              },
+              "files": {},
+              "dockerSecretMounts": {}
+            },
+            "addonDependencies": [],
+            "name": "CORS ORIGIN",
+            "restrictions": {
+              "restricted": false,
+              "nfObjects": [],
+              "tags": []
+            },
+            "projectId": "${refs.project.id}"
+          },
+          "ref": "cors-origin"
         }
       ]
     }
