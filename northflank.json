@@ -134,67 +134,19 @@
                       "ref": "server"
                     },
                     {
-                      "kind": "Job",
+                      "kind": "Action",
                       "spec": {
-                        "settings": {
-                          "backoffLimit": 0,
-                          "activeDeadlineSeconds": 600,
-                          "runOnSourceChange": "never"
-                        },
-                        "deployment": {
-                          "storage": {
-                            "ephemeralStorage": {
-                              "storageSize": 1024
-                            },
-                            "shmSize": 64
+                        "kind": "Service",
+                        "spec": {
+                          "data": {
+                            "projectId": "${refs.project.id}",
+                            "serviceId": "${refs.server.id}",
+                            "command": "python -m alembic upgrade head"
                           },
-                          "docker": {
-                            "configType": "customCommand",
-                            "customCommand": "python -m alembic upgrade head"
-                          },
-                          "vcs": {
-                            "projectType": "github",
-                            "accountLogin": "ewdurbin",
-                            "projectUrl": "https://github.com/ewdurbin/toy-app",
-                            "projectBranch": "main"
-                          }
-                        },
-                        "billing": {
-                          "deploymentPlan": "nf-compute-10",
-                          "buildPlan": "nf-compute-400-16"
-                        },
-                        "runtimeEnvironment": {},
-                        "runtimeFiles": {},
-                        "infrastructure": {
-                          "architecture": "x86"
-                        },
-                        "name": "migrate",
-                        "buildSettings": {
-                          "storage": {
-                            "ephemeralStorage": {
-                              "storageSize": 16384
-                            }
-                          },
-                          "dockerfile": {
-                            "buildEngine": "buildkit",
-                            "dockerWorkDir": "/server",
-                            "dockerFilePath": "/server/Dockerfile",
-                            "buildkit": {
-                              "useCache": false,
-                              "cacheStorageSize": 16384
-                            }
-                          }
-                        },
-                        "buildArguments": {},
-                        "buildFiles": {},
-                        "dockerSecretMounts": {},
-                        "buildConfiguration": {
-                          "pathIgnoreRules": [],
-                          "isAllowList": false,
-                          "ciIgnoreFlagsEnabled": false
+                          "type": "execute"
                         }
                       },
-                      "ref": "migrate"
+                      "ref": "refsserverid-action-1"
                     },
                     {
                       "kind": "SecretGroup",
