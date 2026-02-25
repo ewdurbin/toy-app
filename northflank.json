@@ -106,7 +106,7 @@
                           "replicas": 1,
                           "storage": 6144,
                           "storageClass": "nvme",
-                          "deploymentPlan": "nf-compute-50"
+                          "deploymentPlan": "nf-compute-20"
                         },
                         "tlsEnabled": true,
                         "infrastructure": {
