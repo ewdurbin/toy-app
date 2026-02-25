@@ -187,14 +187,13 @@
             "priority": 10,
             "secrets": {
               "variables": {
-                "CORS_ORIGINS": "https://${refs.app.ports.0.dns}",
                 "VITE_API_URL": "https://${refs.server.ports.0.dns}"
               },
               "files": {},
               "dockerSecretMounts": {}
             },
             "addonDependencies": [],
-            "name": "CORS",
+            "name": "API URL",
             "restrictions": {
               "restricted": false,
               "nfObjects": [],
@@ -282,6 +281,29 @@
             }
           },
           "ref": "app"
+        },
+        {
+          "kind": "SecretGroup",
+          "spec": {
+            "type": "secret",
+            "secretType": "environment-arguments",
+            "priority": 10,
+            "secrets": {
+              "variables": {
+                "CORS_ORIGINS": "https://${refs.app.ports.0.dns}"
+              },
+              "files": {},
+              "dockerSecretMounts": {}
+            },
+            "addonDependencies": [],
+            "name": "CORS ORIGIN",
+            "restrictions": {
+              "restricted": false,
+              "nfObjects": [],
+              "tags": []
+            }
+          },
+          "ref": "cors-origin"
         }
       ]
     }
