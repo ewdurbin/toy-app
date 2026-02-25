@@ -278,7 +278,8 @@
               "pathIgnoreRules": [],
               "isAllowList": false,
               "ciIgnoreFlagsEnabled": false
-            }
+            },
+            "projectId": "${refs.project.id}"
           },
           "ref": "app"
         },
