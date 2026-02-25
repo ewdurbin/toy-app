@@ -1,0 +1,87 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Preview — Client",
+  "description": "Builds and deploys client from PR branch with VITE_API_URL, port 80.",
+  "arguments": {
+    "previewId": {
+      "required": true,
+      "description": "Unique identifier for this preview (e.g. pr-42)"
+    },
+    "branch": {
+      "required": true,
+      "description": "Git branch to build from"
+    },
+    "sha": {
+      "required": true,
+      "description": "Git commit SHA to build"
+    },
+    "VITE_API_URL": {
+      "required": true,
+      "description": "API URL pointing at the preview server"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "BuildSource",
+          "spec": {
+            "name": "client-build-${args.previewId}",
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/app/Dockerfile",
+              "dockerWorkDir": "/app",
+              "buildArguments": {
+                "VITE_API_URL": "${args.VITE_API_URL}"
+              }
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "${args.branch}",
+                "sha": "${args.sha}"
+              }
+            },
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "client-${args.previewId}",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "client-${args.previewId}",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 80,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "buildId": "client-build-${args.previewId}",
+            "tags": ["${args.previewId}"]
+          }
+        }
+      ]
+    }
+  }
+}

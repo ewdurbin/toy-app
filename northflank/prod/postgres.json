@@ -1,0 +1,30 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Production — PostgreSQL",
+  "description": "Managed Postgres addon.",
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Addon",
+          "spec": {
+            "name": "postgresql",
+            "type": "postgres",
+            "version": "16",
+            "billing": {
+              "replicas": 1,
+              "storage": 4096,
+              "storageClass": "ssd"
+            },
+            "typeSpecificSettings": {
+              "postgresDatabase": "toy_app"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

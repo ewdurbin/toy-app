@@ -1,0 +1,81 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Production — Server",
+  "description": "Backend service built from server/Dockerfile, port 8000, with health checks.",
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "CombinedService",
+          "spec": {
+            "name": "server",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "server",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 8000,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "healthChecks": [
+              {
+                "type": "liveness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 10,
+                "periodSeconds": 30,
+                "failureThreshold": 3
+              },
+              {
+                "type": "readiness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 5,
+                "periodSeconds": 10,
+                "failureThreshold": 3
+              }
+            ],
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/server/Dockerfile",
+              "dockerWorkDir": "/server"
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "main"
+              }
+            },
+            "secretGroups": [
+              {
+                "id": "app-secrets"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

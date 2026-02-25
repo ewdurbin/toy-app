@@ -1,0 +1,65 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Production — Client",
+  "description": "Frontend service built from app/Dockerfile with VITE_API_URL build arg, port 80.",
+  "arguments": {
+    "VITE_API_URL": {
+      "required": true,
+      "description": "API URL injected into the client build"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "CombinedService",
+          "spec": {
+            "name": "client",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "client",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 80,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/app/Dockerfile",
+              "dockerWorkDir": "/app",
+              "buildArguments": {
+                "VITE_API_URL": "${args.VITE_API_URL}"
+              }
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "main"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

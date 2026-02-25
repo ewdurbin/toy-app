@@ -1,0 +1,22 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Production — Project",
+  "description": "Creates the Northflank project.",
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Project",
+          "spec": {
+            "name": "toy-app",
+            "region": "europe-west",
+            "description": "Toy App production project"
+          }
+        }
+      ]
+    }
+  }
+}

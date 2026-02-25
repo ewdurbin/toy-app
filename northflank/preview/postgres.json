@@ -1,0 +1,45 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Preview — PostgreSQL",
+  "description": "Postgres addon forked from production via latest backup.",
+  "arguments": {
+    "previewId": {
+      "required": true,
+      "description": "Unique identifier for this preview (e.g. pr-42)"
+    },
+    "sourceAddonId": {
+      "required": true,
+      "description": "Addon ID of the production PostgreSQL to fork from"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Addon",
+          "spec": {
+            "name": "postgresql-${args.previewId}",
+            "type": "postgres",
+            "version": "16",
+            "billing": {
+              "replicas": 1,
+              "storage": 4096,
+              "storageClass": "ssd"
+            },
+            "typeSpecificSettings": {
+              "postgresDatabase": "toy_app"
+            },
+            "source": {
+              "addonId": "${args.sourceAddonId}",
+              "backupId": "latest"
+            },
+            "tags": ["${args.previewId}"]
+          }
+        }
+      ]
+    }
+  }
+}

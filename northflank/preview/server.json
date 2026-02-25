@@ -1,0 +1,105 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Preview — Server",
+  "description": "Builds and deploys server from PR branch, port 8000, with health checks.",
+  "arguments": {
+    "previewId": {
+      "required": true,
+      "description": "Unique identifier for this preview (e.g. pr-42)"
+    },
+    "branch": {
+      "required": true,
+      "description": "Git branch to build from"
+    },
+    "sha": {
+      "required": true,
+      "description": "Git commit SHA to build"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "BuildSource",
+          "spec": {
+            "name": "server-build-${args.previewId}",
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/server/Dockerfile",
+              "dockerWorkDir": "/server"
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "${args.branch}",
+                "sha": "${args.sha}"
+              }
+            },
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "server-${args.previewId}",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "server-${args.previewId}",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 8000,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "healthChecks": [
+              {
+                "type": "liveness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 10,
+                "periodSeconds": 30,
+                "failureThreshold": 3
+              },
+              {
+                "type": "readiness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 5,
+                "periodSeconds": 10,
+                "failureThreshold": 3
+              }
+            ],
+            "buildId": "server-build-${args.previewId}",
+            "secretGroups": [
+              {
+                "id": "secrets-${args.previewId}"
+              }
+            ],
+            "tags": ["${args.previewId}"]
+          }
+        }
+      ]
+    }
+  }
+}
