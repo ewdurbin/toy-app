@@ -82,7 +82,23 @@
                     "projectUrl": "https://github.com/ewdurbin/toy-app",
                     "projectBranch": "main"
                   },
-                  "ports": [],
+                  "ports": [
+                    {
+                      "internalPort": 80,
+                      "protocol": "HTTP",
+                      "name": "p01",
+                      "public": true,
+                      "domains": [],
+                      "security": {
+                        "policies": [],
+                        "credentials": [],
+                        "securePathConfiguration": {
+                          "rules": []
+                        }
+                      },
+                      "disableNfDomain": false
+                    }
+                  ],
                   "disabledCI": false,
                   "buildConfiguration": {
                     "pathIgnoreRules": [],
