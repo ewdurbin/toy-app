@@ -278,7 +278,8 @@
               "restricted": false,
               "nfObjects": [],
               "tags": []
-            }
+            },
+            "projectId": "${refs.project.id}"
           },
           "ref": "cors"
         }
