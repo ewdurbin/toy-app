@@ -1,0 +1,215 @@
+{
+  "$schema": "https://northflank.com/schemas/v1/template",
+  "apiVersion": "v1.2",
+  "name": "Preview Environment",
+  "description": "Ephemeral preview environment triggered on PR open/push. Forked DB, server, and client.",
+  "arguments": {
+    "previewId": {
+      "required": true,
+      "description": "Unique identifier for this preview (e.g. pr-42)"
+    },
+    "branch": {
+      "required": true,
+      "description": "Git branch to build from"
+    },
+    "sha": {
+      "required": true,
+      "description": "Git commit SHA to build"
+    },
+    "VITE_API_URL": {
+      "required": true,
+      "description": "API URL pointing at the preview server"
+    },
+    "sourceAddonId": {
+      "required": true,
+      "description": "Addon ID of the production PostgreSQL to fork from"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Addon",
+          "spec": {
+            "name": "postgresql-${args.previewId}",
+            "type": "postgres",
+            "version": "16",
+            "billing": {
+              "replicas": 1,
+              "storage": 4096,
+              "storageClass": "ssd"
+            },
+            "typeSpecificSettings": {
+              "postgresDatabase": "toy_app"
+            },
+            "source": {
+              "addonId": "${args.sourceAddonId}",
+              "backupId": "latest"
+            },
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "SecretGroup",
+          "spec": {
+            "name": "secrets-${args.previewId}",
+            "secretType": "environment",
+            "priority": 10,
+            "secrets": {
+              "variables": {}
+            },
+            "addonLinks": [
+              {
+                "addonId": "postgresql-${args.previewId}",
+                "keys": [
+                  {
+                    "addonKey": "CONNECTION_STRING",
+                    "secretKey": "DATABASE_URL"
+                  }
+                ]
+              }
+            ],
+            "restrictions": {
+              "restricted": true,
+              "tags": ["${args.previewId}"]
+            }
+          }
+        },
+        {
+          "kind": "BuildSource",
+          "spec": {
+            "name": "server-build-${args.previewId}",
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/server/Dockerfile",
+              "dockerWorkDir": "/server"
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "${args.branch}",
+                "sha": "${args.sha}"
+              }
+            },
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "BuildSource",
+          "spec": {
+            "name": "client-build-${args.previewId}",
+            "buildConfiguration": {
+              "type": "docker",
+              "dockerFilePath": "/app/Dockerfile",
+              "dockerWorkDir": "/app",
+              "buildArguments": {
+                "VITE_API_URL": "${args.VITE_API_URL}"
+              }
+            },
+            "buildSettings": {
+              "gitHub": {
+                "branch": "${args.branch}",
+                "sha": "${args.sha}"
+              }
+            },
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "server-${args.previewId}",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "server-${args.previewId}",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 8000,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "healthChecks": [
+              {
+                "type": "liveness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 10,
+                "periodSeconds": 30,
+                "failureThreshold": 3
+              },
+              {
+                "type": "readiness",
+                "protocol": "HTTP",
+                "path": "/health",
+                "port": 8000,
+                "initialDelaySeconds": 5,
+                "periodSeconds": 10,
+                "failureThreshold": 3
+              }
+            ],
+            "buildId": "server-build-${args.previewId}",
+            "secretGroups": [
+              {
+                "id": "secrets-${args.previewId}"
+              }
+            ],
+            "tags": ["${args.previewId}"]
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "client-${args.previewId}",
+            "billing": {
+              "deploymentPlan": "nf-compute-20"
+            },
+            "deployment": {
+              "instances": 1,
+              "docker": {
+                "configType": "default"
+              },
+              "internal": {
+                "id": "client-${args.previewId}",
+                "nfObjectType": "service"
+              },
+              "storage": {
+                "ephemeralStorage": {
+                  "storageSize": 1024
+                }
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "internalPort": 80,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ],
+            "buildId": "client-build-${args.previewId}",
+            "tags": ["${args.previewId}"]
+          }
+        }
+      ]
+    }
+  }
+}
