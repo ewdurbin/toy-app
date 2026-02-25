@@ -118,46 +118,6 @@
                       "ref": "database"
                     },
                     {
-                      "kind": "SecretGroup",
-                      "spec": {
-                        "type": "secret",
-                        "secretType": "environment",
-                        "priority": 10,
-                        "secrets": {
-                          "variables": {
-                            "": ""
-                          },
-                          "files": {},
-                          "dockerSecretMounts": {}
-                        },
-                        "addonDependencies": [
-                          {
-                            "addonId": "${refs.database.id}",
-                            "keys": [
-                              {
-                                "keyName": "POSTGRES_URI",
-                                "aliases": [
-                                  "DATABASE_URL"
-                                ]
-                              }
-                            ]
-                          }
-                        ],
-                        "name": "db-secrets",
-                        "restrictions": {
-                          "restricted": true,
-                          "nfObjects": [
-                            {
-                              "id": "${refs.server.id}",
-                              "type": "service"
-                            }
-                          ],
-                          "tags": []
-                        }
-                      },
-                      "ref": "db-secrets"
-                    },
-                    {
                       "kind": "CombinedService",
                       "spec": {
                         "deployment": {
@@ -219,6 +179,46 @@
                         }
                       },
                       "ref": "server"
+                    },
+                    {
+                      "kind": "SecretGroup",
+                      "spec": {
+                        "type": "secret",
+                        "secretType": "environment",
+                        "priority": 10,
+                        "secrets": {
+                          "variables": {
+                            "": ""
+                          },
+                          "files": {},
+                          "dockerSecretMounts": {}
+                        },
+                        "addonDependencies": [
+                          {
+                            "addonId": "${refs.database.id}",
+                            "keys": [
+                              {
+                                "keyName": "POSTGRES_URI",
+                                "aliases": [
+                                  "DATABASE_URL"
+                                ]
+                              }
+                            ]
+                          }
+                        ],
+                        "name": "db-secrets",
+                        "restrictions": {
+                          "restricted": true,
+                          "nfObjects": [
+                            {
+                              "id": "${refs.server.id}",
+                              "type": "service"
+                            }
+                          ],
+                          "tags": []
+                        }
+                      },
+                      "ref": "db-secrets"
                     }
                   ]
                 }
@@ -229,8 +229,6 @@
       ]
     }
   },
-  "name": "toy-app",
-  "description": "",
   "options": {
     "autorun": false,
     "concurrencyPolicy": "allow"
