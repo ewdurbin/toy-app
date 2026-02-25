@@ -15,9 +15,10 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Override URL from environment if available
+# Override URL from environment if available, ensuring asyncpg driver
 database_url = os.environ.get("DATABASE_URL")
 if database_url:
+    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 
 
