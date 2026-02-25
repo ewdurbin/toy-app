@@ -134,50 +134,6 @@
                       "ref": "server"
                     },
                     {
-                      "kind": "SecretGroup",
-                      "spec": {
-                        "type": "secret",
-                        "secretType": "environment",
-                        "priority": 10,
-                        "secrets": {
-                          "variables": {
-                            "": ""
-                          },
-                          "files": {},
-                          "dockerSecretMounts": {}
-                        },
-                        "addonDependencies": [
-                          {
-                            "addonId": "${refs.database.id}",
-                            "keys": [
-                              {
-                                "keyName": "POSTGRES_URI",
-                                "aliases": [
-                                  "DATABASE_URL"
-                                ]
-                              }
-                            ]
-                          }
-                        ],
-                        "name": "db-secrets",
-                        "restrictions": {
-                          "restricted": true,
-                          "nfObjects": [
-                            {
-                              "id": "${refs.server.id}",
-                              "type": "service"
-                            },
-                            {
-                              "id": "${refs.migrate.id}",
-                              "type": "job"
-                            }
-                          ],
-                          "tags": []
-                        }
-                      },
-                      "ref": "db-secrets"
-                    },
-                    {
                       "kind": "Job",
                       "spec": {
                         "settings": {
@@ -239,6 +195,50 @@
                         }
                       },
                       "ref": "migrate"
+                    },
+                    {
+                      "kind": "SecretGroup",
+                      "spec": {
+                        "type": "secret",
+                        "secretType": "environment",
+                        "priority": 10,
+                        "secrets": {
+                          "variables": {
+                            "": ""
+                          },
+                          "files": {},
+                          "dockerSecretMounts": {}
+                        },
+                        "addonDependencies": [
+                          {
+                            "addonId": "${refs.database.id}",
+                            "keys": [
+                              {
+                                "keyName": "POSTGRES_URI",
+                                "aliases": [
+                                  "DATABASE_URL"
+                                ]
+                              }
+                            ]
+                          }
+                        ],
+                        "name": "db-secrets",
+                        "restrictions": {
+                          "restricted": true,
+                          "nfObjects": [
+                            {
+                              "id": "${refs.server.id}",
+                              "type": "service"
+                            },
+                            {
+                              "id": "${refs.migrate.id}",
+                              "type": "job"
+                            }
+                          ],
+                          "tags": []
+                        }
+                      },
+                      "ref": "db-secrets"
                     }
                   ]
                 }
