@@ -162,16 +162,7 @@
                         "name": "db-secrets",
                         "restrictions": {
                           "restricted": true,
-                          "nfObjects": [
-                            {
-                              "id": "${refs.server.id}",
-                              "type": "service"
-                            },
-                            {
-                              "id": "${refs.migrate.id}",
-                              "type": "job"
-                            }
-                          ],
+                          "nfObjects": [],
                           "tags": []
                         }
                       },
