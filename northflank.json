@@ -134,21 +134,6 @@
                       "ref": "server"
                     },
                     {
-                      "kind": "Action",
-                      "spec": {
-                        "kind": "Service",
-                        "spec": {
-                          "data": {
-                            "projectId": "${refs.project.id}",
-                            "serviceId": "${refs.server.id}",
-                            "command": "python -m alembic upgrade head"
-                          },
-                          "type": "execute"
-                        }
-                      },
-                      "ref": "refsserverid-action-1"
-                    },
-                    {
                       "kind": "SecretGroup",
                       "spec": {
                         "type": "secret",
@@ -191,6 +176,21 @@
                         }
                       },
                       "ref": "db-secrets"
+                    },
+                    {
+                      "kind": "Action",
+                      "spec": {
+                        "kind": "Service",
+                        "spec": {
+                          "data": {
+                            "projectId": "${refs.project.id}",
+                            "serviceId": "${refs.server.id}",
+                            "command": "python -m alembic upgrade head"
+                          },
+                          "type": "execute"
+                        }
+                      },
+                      "ref": "refsserverid-action-1"
                     }
                   ]
                 }
