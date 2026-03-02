@@ -15,6 +15,11 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
+    location = /_health/ {
+        return 200 "OK";
+        add_header Content-Type text/plain;
+    }
+
     # SPA fallback — no-cache HTML
     location / {
         try_files $uri $uri/ /index.html;

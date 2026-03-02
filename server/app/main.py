@@ -67,6 +67,7 @@ class ItemResponse(BaseModel):
 
 
 @app.get("/health")
+@app.get("/_health/")
 async def health():
     return {"status": "ok"}
 
