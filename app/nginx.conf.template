@@ -1,5 +1,5 @@
 server {
-    listen 80;
+    listen unix:/var/run/cabotage/cabotage.sock;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
