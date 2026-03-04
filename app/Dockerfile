@@ -1,4 +1,4 @@
-FROM oven/bun:1.2-slim AS builder
+FROM FAILME FOR FAILING
 
 WORKDIR /app
 
