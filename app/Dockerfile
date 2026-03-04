@@ -1,4 +1,4 @@
-FROM oven/bun:1.2-slim AS builder
+FROM oven/bun:1.2-slim AS buildah
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=buildah /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
