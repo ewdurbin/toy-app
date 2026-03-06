@@ -38,7 +38,7 @@ function ItemsList() {
         <h1 className="text-2xl font-bold">Items</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
+          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
         >
           <Plus size={16} />
           New Item
@@ -65,7 +65,7 @@ function ItemsList() {
           <button
             type="submit"
             disabled={createItem.isPending}
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm"
           >
             {createItem.isPending ? "Creating..." : "Create"}
           </button>
