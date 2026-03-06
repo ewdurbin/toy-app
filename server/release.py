@@ -17,7 +17,7 @@ TASKS = [
 ]
 
 def main():
-    duration = random.uniform(5, 10)
+    duration = random.uniform(1, 3)
     random.shuffle(TASKS)
     tasks = TASKS[: random.randint(4, len(TASKS))]
     interval = duration / len(tasks)
