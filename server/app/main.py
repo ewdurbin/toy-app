@@ -1,10 +1,12 @@
+import asyncio
 import logging
 import os
+import random
 import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -70,6 +72,28 @@ class ItemResponse(BaseModel):
 @app.get("/_health/")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/ping")
+async def ping():
+    return {"ping": "pong"}
+
+
+@app.get("/echo")
+async def echo(message: str = Query(default="hello")):
+    return {"message": message}
+
+
+@app.get("/time")
+async def time_now():
+    return {"time": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/sleepy")
+async def sleepy(min_ms: int = Query(default=200), max_ms: int = Query(default=2000)):
+    delay_ms = random.randint(min(min_ms, max_ms), max(min_ms, max_ms))
+    await asyncio.sleep(delay_ms / 1000.0)
+    return {"slept_ms": delay_ms}
 
 
 @app.get("/v1/items", response_model=list[ItemResponse])
