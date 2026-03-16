@@ -1,1 +1,1 @@
-tcp: /app/run.sh
+tcp: /bin/sh /app/run.sh
