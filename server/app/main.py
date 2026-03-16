@@ -4,7 +4,6 @@ import logging
 import os
 import random
 import ssl
-import tempfile
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -42,11 +41,7 @@ def _build_redis_client() -> redis.Redis:
     if REDIS_TLS:
         ssl_ctx = ssl.create_default_context()
         if REDIS_CA_CERT:
-            # CA cert provided as PEM string — write to a temp file for ssl context
-            ca_file = tempfile.NamedTemporaryFile(suffix=".pem", delete=False)
-            ca_file.write(REDIS_CA_CERT.encode())
-            ca_file.close()
-            ssl_ctx.load_verify_locations(ca_file.name)
+            ssl_ctx.load_verify_locations(REDIS_CA_CERT)
         kwargs["ssl"] = ssl_ctx
     return redis.Redis(**kwargs)
 

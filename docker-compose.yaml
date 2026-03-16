@@ -1,42 +1,27 @@
 services:
-  postgres:
-    image: postgres:18-alpine
-    profiles: [db]
-    environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USERNAME}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+  redis:
+    image: redis:8-alpine
     ports:
-      - "5432:5432"
+      - "6379:6379"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - redisdata:/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-
-  migrations:
-    build: ./server
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
-    command: ["python", "-m", "alembic", "upgrade", "head"]
-    profiles: [db]
 
   server:
     build: ./server
     ports:
       - "8000:8000"
     depends_on:
-      migrations:
-        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       CORS_ORIGINS: http://localhost:5173
-    profiles: [db]
 
   client:
     build:
@@ -47,7 +32,6 @@ services:
       - "5173:80"
     depends_on:
       - server
-    profiles: [db]
 
 volumes:
-  pgdata:
+  redisdata:
