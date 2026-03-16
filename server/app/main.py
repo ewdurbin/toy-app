@@ -39,9 +39,10 @@ def _build_redis_client() -> redis.Redis:
         "decode_responses": True,
     }
     if REDIS_TLS:
-        ssl_ctx = ssl.create_default_context()
         if REDIS_CA_CERT:
-            ssl_ctx.load_verify_locations(REDIS_CA_CERT)
+            ssl_ctx = ssl.create_default_context(cafile=REDIS_CA_CERT)
+        else:
+            ssl_ctx = ssl.create_default_context()
         kwargs["ssl"] = ssl_ctx
     return redis.Redis(**kwargs)
 
