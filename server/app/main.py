@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import random
-import ssl
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -41,9 +40,7 @@ def _build_redis_client() -> redis.Redis:
     if REDIS_TLS:
         kwargs["ssl"] = True
         if REDIS_CA_CERT:
-            kwargs["ssl_context"] = ssl.create_default_context(cafile=REDIS_CA_CERT)
-        else:
-            kwargs["ssl_context"] = ssl.create_default_context()
+            kwargs["ssl_ca_certs"] = REDIS_CA_CERT
     return redis.Redis(**kwargs)
 
 
