@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.30",
     "alembic>=1.14",
     "pydantic>=2.10",
+    "redis>=5.0",
 ]
 
 [tool.hatch.build.targets.wheel]

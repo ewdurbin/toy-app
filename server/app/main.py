@@ -1,11 +1,15 @@
 import asyncio
+import json
 import logging
 import os
 import random
+import ssl
+import tempfile
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import redis.asyncio as redis
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
@@ -15,15 +19,46 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- In-memory store ---
+# --- Redis connection ---
 
-ITEMS: dict[uuid.UUID, dict] = {}
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", None)
+REDIS_TLS = os.environ.get("REDIS_TLS", "").lower() in ("1", "true", "yes")
+REDIS_CA_CERT = os.environ.get("REDIS_CA_CERT", None)
+
+ITEMS_KEY = "items"
+
+_redis: redis.Redis | None = None
+
+
+def _build_redis_client() -> redis.Redis:
+    kwargs: dict = {
+        "host": REDIS_HOST,
+        "port": REDIS_PORT,
+        "password": REDIS_PASSWORD,
+        "decode_responses": True,
+    }
+    if REDIS_TLS:
+        ssl_ctx = ssl.create_default_context()
+        if REDIS_CA_CERT:
+            # CA cert provided as PEM string — write to a temp file for ssl context
+            ca_file = tempfile.NamedTemporaryFile(suffix=".pem", delete=False)
+            ca_file.write(REDIS_CA_CERT.encode())
+            ca_file.close()
+            ssl_ctx.load_verify_locations(ca_file.name)
+        kwargs["ssl"] = ssl_ctx
+    return redis.Redis(**kwargs)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting up")
+    global _redis
+    _redis = _build_redis_client()
+    logger.info("Connected to Redis at %s:%s", REDIS_HOST, REDIS_PORT)
     yield
+    if _redis:
+        await _redis.aclose()
     logger.info("Shut down")
 
 
@@ -63,6 +98,25 @@ class ItemResponse(BaseModel):
     updated_at: datetime
 
 
+# --- Helpers ---
+
+
+def _serialize_item(item: dict) -> str:
+    d = dict(item)
+    d["id"] = str(d["id"])
+    d["created_at"] = d["created_at"].isoformat()
+    d["updated_at"] = d["updated_at"].isoformat()
+    return json.dumps(d)
+
+
+def _deserialize_item(raw: str) -> dict:
+    d = json.loads(raw)
+    d["id"] = uuid.UUID(d["id"])
+    d["created_at"] = datetime.fromisoformat(d["created_at"])
+    d["updated_at"] = datetime.fromisoformat(d["updated_at"])
+    return d
+
+
 # --- Routes ---
 
 
@@ -96,7 +150,9 @@ async def sleepy(min_ms: int = Query(default=200), max_ms: int = Query(default=2
 
 @app.get("/v1/items", response_model=list[ItemResponse])
 async def list_items():
-    return sorted(ITEMS.values(), key=lambda x: x["created_at"], reverse=True)
+    raw_items = await _redis.hvals(ITEMS_KEY)
+    items = [_deserialize_item(r) for r in raw_items]
+    return sorted(items, key=lambda x: x["created_at"], reverse=True)
 
 
 @app.post("/v1/items", response_model=ItemResponse, status_code=201)
@@ -109,32 +165,34 @@ async def create_item(body: ItemCreate):
         "created_at": now,
         "updated_at": now,
     }
-    ITEMS[item["id"]] = item
+    await _redis.hset(ITEMS_KEY, str(item["id"]), _serialize_item(item))
     return item
 
 
 @app.get("/v1/items/{item_id}", response_model=ItemResponse)
 async def get_item(item_id: uuid.UUID):
-    item = ITEMS.get(item_id)
-    if not item:
+    raw = await _redis.hget(ITEMS_KEY, str(item_id))
+    if not raw:
         raise HTTPException(status_code=404, detail="Item not found")
-    return item
+    return _deserialize_item(raw)
 
 
 @app.patch("/v1/items/{item_id}", response_model=ItemResponse)
 async def update_item(item_id: uuid.UUID, body: ItemUpdate):
-    item = ITEMS.get(item_id)
-    if not item:
+    raw = await _redis.hget(ITEMS_KEY, str(item_id))
+    if not raw:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = _deserialize_item(raw)
     update_data = body.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         item[key] = value
     item["updated_at"] = datetime.now(timezone.utc)
+    await _redis.hset(ITEMS_KEY, str(item["id"]), _serialize_item(item))
     return item
 
 
 @app.delete("/v1/items/{item_id}", status_code=204)
 async def delete_item(item_id: uuid.UUID):
-    if item_id not in ITEMS:
+    deleted = await _redis.hdel(ITEMS_KEY, str(item_id))
+    if not deleted:
         raise HTTPException(status_code=404, detail="Item not found")
-    del ITEMS[item_id]
