@@ -2,3 +2,4 @@ web: uvicorn app.main:app --uds /var/run/cabotage/cabotage.sock --workers 1
 web-test: uvicorn app.main:app --uds /var/run/cabotage/cabotage.sock --workers 1
 worker: python -m app.worker
 release: python release.py
+job-chit-chat: env SCHEDULE="* * * * *" python chit-chat.py
