@@ -22,18 +22,10 @@ def main():
     tasks = TASKS[: random.randint(4, len(TASKS))]
     interval = duration / len(tasks)
 
-    print(f"Starting release phase ({len(tasks)} steps)...")
     for i, task in enumerate(tasks, 1):
         print(f"[{i}/{len(tasks)}] {task}...", flush=True)
         time.sleep(interval * random.uniform(0.6, 1.4))
         print(f"  done.", flush=True)
-
-    print("\n--- Environment Variables ---")
-    for key in sorted(os.environ):
-        print(f"  {key}={os.environ[key]}")
-    print("---\n")
-
-    print("Release phase complete.")
 
 if __name__ == "__main__":
     main()
