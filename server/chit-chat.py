@@ -20,11 +20,10 @@ def main():
     duration = random.uniform(1, 3)
     random.shuffle(TASKS)
     tasks = TASKS[: random.randint(4, len(TASKS))]
-    interval = duration / len(tasks)
 
     for i, task in enumerate(tasks, 1):
         print(f"[{i}/{len(tasks)}] {task}...", flush=True)
-        time.sleep(interval * random.uniform(0.6, 1.4))
+        time.sleep(0.25)
         print(f"  done.", flush=True)
 
 if __name__ == "__main__":
