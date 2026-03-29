@@ -141,6 +141,12 @@ async def sleepy(min_ms: int = Query(default=200), max_ms: int = Query(default=2
     return {"slept_ms": delay_ms}
 
 
+@app.get("/v1/items/count")
+async def count_items():
+    count = await _redis.hlen(ITEMS_KEY)
+    return {"count": count}
+
+
 @app.get("/v1/items", response_model=list[ItemResponse])
 async def list_items():
     raw_items = await _redis.hvals(ITEMS_KEY)
