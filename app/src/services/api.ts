@@ -36,6 +36,13 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export function useItemCount() {
+  return useQuery<{ count: number }>({
+    queryKey: ["items", "count"],
+    queryFn: () => fetchJson("/v1/items/count"),
+  });
+}
+
 export function useItems() {
   return useQuery<Item[]>({
     queryKey: ["items"],

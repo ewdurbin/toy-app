@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Plus, Trash2 } from "lucide-react";
 import {
   useItems,
+  useItemCount,
   useCreateItem,
   useDeleteItem,
   type CreateItemInput,
@@ -13,6 +14,7 @@ const queryClient = new QueryClient();
 
 function ItemsList() {
   const { data: items, isLoading, error } = useItems();
+  const { data: countData } = useItemCount();
   const createItem = useCreateItem();
   const deleteItem = useDeleteItem();
   const [form, setForm] = useState<CreateItemInput>({ name: "", description: "" });
@@ -35,7 +37,9 @@ function ItemsList() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Items</h1>
+        <h1 className="text-2xl font-bold">
+          Items{countData != null && <span className="ml-2 text-base font-normal text-gray-400">({countData.count})</span>}
+        </h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
