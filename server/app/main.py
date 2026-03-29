@@ -147,6 +147,20 @@ async def count_items():
     return {"count": count}
 
 
+@app.get("/v1/items/search", response_model=list[ItemResponse])
+async def search_items(q: str = Query(default="")):
+    raw_items = await _redis.hvals(ITEMS_KEY)
+    items = [_deserialize_item(r) for r in raw_items]
+    if q:
+        q_lower = q.lower()
+        items = [
+            i for i in items
+            if q_lower in i["name"].lower()
+            or (i.get("description") and q_lower in i["description"].lower())
+        ]
+    return sorted(items, key=lambda x: x["created_at"], reverse=True)
+
+
 @app.get("/v1/items", response_model=list[ItemResponse])
 async def list_items():
     raw_items = await _redis.hvals(ITEMS_KEY)
