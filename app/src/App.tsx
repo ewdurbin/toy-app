@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import {
   useItems,
+  useSearchItems,
   useCreateItem,
   useDeleteItem,
   type CreateItemInput,
@@ -12,11 +13,14 @@ import {
 const queryClient = new QueryClient();
 
 function ItemsList() {
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: items, isLoading, error } = useItems();
+  const { data: searchResults } = useSearchItems(searchQuery);
   const createItem = useCreateItem();
   const deleteItem = useDeleteItem();
   const [form, setForm] = useState<CreateItemInput>({ name: "", description: "" });
   const [showForm, setShowForm] = useState(false);
+  const displayItems = searchQuery ? searchResults : items;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +47,17 @@ function ItemsList() {
           <Plus size={16} />
           New Item
         </button>
+      </div>
+
+      <div className="relative mb-4">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search items..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 border rounded-md"
+        />
       </div>
 
       {showForm && (
@@ -76,7 +91,7 @@ function ItemsList() {
       {error && <p className="text-red-500">Error: {error.message}</p>}
 
       <ul className="space-y-2">
-        {items?.map((item) => (
+        {displayItems?.map((item) => (
           <li
             key={item.id}
             className="flex items-center justify-between p-3 border rounded-lg"
@@ -102,7 +117,7 @@ function ItemsList() {
         ))}
       </ul>
 
-      {items?.length === 0 && (
+      {displayItems?.length === 0 && !searchQuery && (
         <p className="text-gray-400 text-center py-8">
           No items yet. Create one to get started.
         </p>
