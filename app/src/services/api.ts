@@ -43,6 +43,14 @@ export function useItems() {
   });
 }
 
+export function useSearchItems(query: string) {
+  return useQuery<Item[]>({
+    queryKey: ["items", "search", query],
+    queryFn: () => fetchJson(`/v1/items/search?q=${encodeURIComponent(query)}`),
+    enabled: query.length > 0,
+  });
+}
+
 export function useItem(id: string) {
   return useQuery<Item>({
     queryKey: ["items", id],
