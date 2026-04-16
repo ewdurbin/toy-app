@@ -14,6 +14,21 @@ export interface Item {
   updated_at: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+export interface AuthSession {
+  user: AuthUser;
+  expires_at: string;
+}
+
+export interface AuthStatus {
+  enabled: boolean;
+}
+
 export interface CreateItemInput {
   name: string;
   description?: string;
@@ -27,13 +42,86 @@ export interface UpdateItemInput {
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     ...init,
   });
   if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText}`);
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const body = await res.json();
+      if (typeof body?.detail === "string") {
+        detail = body.detail;
+      }
+    } catch {
+      // Ignore malformed error bodies and fall back to status text.
+    }
+    throw new Error(detail);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+export function useCurrentUser(enabled = true) {
+  return useQuery<AuthSession | null>({
+    queryKey: ["auth", "me"],
+    queryFn: async () => {
+      try {
+        return await fetchJson<AuthSession>("/v1/auth/me");
+      } catch (error) {
+        if (error instanceof Error && error.message === "Not authenticated") {
+          return null;
+        }
+        throw error;
+      }
+    },
+    enabled,
+    retry: false,
+  });
+}
+
+export function useAuthStatus() {
+  return useQuery<AuthStatus>({
+    queryKey: ["auth", "status"],
+    queryFn: () => fetchJson("/v1/auth/status"),
+    retry: false,
+  });
+}
+
+export function useSignup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { email: string; password: string }) =>
+      fetchJson<AuthSession>("/v1/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["auth"] }),
+  });
+}
+
+export function useLogin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { email: string; password: string }) =>
+      fetchJson<AuthSession>("/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["auth"] }),
+  });
+}
+
+export function useLogout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetchJson<void>("/v1/auth/logout", {
+        method: "POST",
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["auth"] });
+    },
+  });
 }
 
 export function useItemCount() {
