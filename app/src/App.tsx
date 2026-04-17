@@ -239,7 +239,7 @@ function ItemsList() {
           <AuthControl />
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1 rounded-md bg-purple-600 px-3 py-1.5 text-sm text-white hover:bg-purple-700"
+            className="flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
           >
             <Plus size={16} />
             New Item
@@ -278,7 +278,7 @@ function ItemsList() {
           <button
             type="submit"
             disabled={createItem.isPending}
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {createItem.isPending ? "Creating..." : "Create"}
           </button>
