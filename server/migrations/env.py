@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.database import CONNECT_ARGS, _normalize_url
+from app.database import CONNECT_ARGS, DATABASE_URL
 from app.models import Base
 
 config = context.config
@@ -22,11 +22,10 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Override URL from environment if available, ensuring asyncpg driver
-database_url = os.environ.get("DATABASE_URL")
-if database_url:
-    database_url = _normalize_url(database_url)
-    config.set_main_option("sqlalchemy.url", database_url)
+# Use the same resolved DB config as the application itself. This allows
+# Alembic to work with either DATABASE_URL or split DATABASE_* env vars.
+if DATABASE_URL:
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
