@@ -161,7 +161,7 @@ function AuthControl() {
               <form onSubmit={handleSubmit} className="space-y-3">
                 <input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="user@example.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full rounded-xl border border-gray-300 px-3 py-2.5"
